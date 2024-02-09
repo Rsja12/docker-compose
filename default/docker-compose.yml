@@ -1,21 +1,34 @@
 services:
 
-  rabbitmq:
-    image: rabbitmq:3.12-management
-    container_name: rabbitmq-container
-    hostname: rabbitmq-host
+  accounts-db:
+    container_name: accounts-db
     ports:
-      - 5672:5672
-      - 15672:15672
-    healthcheck:
-      test: rabbitmq-diagnostics check_port_connectivity
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 5s
+      - 3306:3306
+    environment:
+      MYSQL_DATABASE: accounts-db
     extends:
       file: common-config.yml
-      service: network-deploy-service
+      service: microservice-db-config
+
+  loans-db:
+    container_name: loans-db
+    ports:
+      - 3307:3306
+    environment:
+      MYSQL_DATABASE: loans-db
+    extends:
+      file: common-config.yml
+      service: microservice-db-config
+
+  cards-db:
+    container_name: cards-db
+    ports:
+      - 3308:3306
+    environment:
+      MYSQL_DATABASE: cards-db
+    extends:
+      file: common-config.yml
+      service: microservice-db-config
 
   config-server:
     image: asocarras/config-server:s6
@@ -45,6 +58,10 @@ services:
       service: microservice-config-server-config
     environment:
       SPRING_APPLICATION_NAME: accounts-service
+      SPRING_DATASOURCE_URL: jdbc:mysql://accounts-db:3306/accounts-db
+    depends_on:
+      accounts-db:
+        condition: service_healthy
 
   loans-service:
     image: asocarras/loans-service:s6
@@ -56,6 +73,10 @@ services:
       service: microservice-config-server-config
     environment:
       SPRING_APPLICATION_NAME: loans-service
+      SPRING_DATASOURCE_URL: jdbc:mysql://loans-db:3307/loans-db
+    depends_on:
+      loans-db:
+        condition: service_healthy
 
   cards-service:
     image: asocarras/cards-service:s6
@@ -67,6 +88,10 @@ services:
       service: microservice-config-server-config
     environment:
       SPRING_APPLICATION_NAME: cards-service
+      SPRING_DATASOURCE_URL: jdbc:mysql://cards-db:3308/cards-db
+    depends_on:
+      cards-db:
+        condition: service_healthy
 
 networks:
   eazybank:
