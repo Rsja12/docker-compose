@@ -31,13 +31,10 @@ services:
       service: microservice-db-config
 
   config-server:
-    image: asocarras/config-server:s6
+    image: asocarras/config-server:s7
     container_name: config-server-container
     ports:
       - 8071:8071
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
     healthcheck:
       test: curl --fail --silent localhost:8071/actuator/health/readiness | grep UP || exit 1
       interval: 10s
@@ -49,7 +46,7 @@ services:
       service: microservice-base-config
 
   accounts-service:
-    image: asocarras/accounts-service:s6
+    image: asocarras/accounts-service:s7
     container_name: accounts-service-container
     ports:
       - 8080:8080
@@ -64,7 +61,7 @@ services:
         condition: service_healthy
 
   loans-service:
-    image: asocarras/loans-service:s6
+    image: asocarras/loans-service:s7
     container_name: loans-service-container
     ports:
       - 8090:8090
@@ -73,13 +70,13 @@ services:
       service: microservice-config-server-config
     environment:
       SPRING_APPLICATION_NAME: loans-service
-      SPRING_DATASOURCE_URL: jdbc:mysql://loans-db:3307/loans-db
+      SPRING_DATASOURCE_URL: jdbc:mysql://loans-db:3306/loans-db
     depends_on:
       loans-db:
         condition: service_healthy
 
   cards-service:
-    image: asocarras/cards-service:s6
+    image: asocarras/cards-service:s7
     container_name: cards-service-container
     ports:
       - 9000:9000
@@ -88,7 +85,7 @@ services:
       service: microservice-config-server-config
     environment:
       SPRING_APPLICATION_NAME: cards-service
-      SPRING_DATASOURCE_URL: jdbc:mysql://cards-db:3308/cards-db
+      SPRING_DATASOURCE_URL: jdbc:mysql://cards-db:3306/cards-db
     depends_on:
       cards-db:
         condition: service_healthy
