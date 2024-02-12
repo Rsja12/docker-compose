@@ -1,43 +1,10 @@
 services:
 
-  accounts-db:
-    container_name: accounts-db
-    ports:
-      - 3306:3306
-    environment:
-      MYSQL_DATABASE: accounts-db
-    extends:
-      file: common-config.yml
-      service: microservice-db-config
-
-  loans-db:
-    container_name: loans-db
-    ports:
-      - 3307:3306
-    environment:
-      MYSQL_DATABASE: loans-db
-    extends:
-      file: common-config.yml
-      service: microservice-db-config
-
-  cards-db:
-    container_name: cards-db
-    ports:
-      - 3308:3306
-    environment:
-      MYSQL_DATABASE: cards-db
-    extends:
-      file: common-config.yml
-      service: microservice-db-config
-
   config-server:
-    image: asocarras/config-server:s6
+    image: asocarras/config-server:s8
     container_name: config-server-container
     ports:
       - 8071:8071
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
     healthcheck:
       test: curl --fail --silent localhost:8071/actuator/health/readiness | grep UP || exit 1
       interval: 10s
@@ -48,50 +15,55 @@ services:
       file: common-config.yml
       service: microservice-base-config
 
+  eureka-server:
+    image: asocarras/eureka-server:s8
+    container_name: eureka-server-container
+    ports:
+      - 8070:8070
+    healthcheck:
+      test: curl --fail --silent localhost:8070/actuator/health/readiness | grep UP || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    extends:
+      file: common-config.yml
+      service: microservice-config-server-config
+    environment:
+      SPRING_APPLICATION_NAME: eureka-server
+
   accounts-service:
-    image: asocarras/accounts-service:s6
+    image: asocarras/accounts-service:s8
     container_name: accounts-service-container
     ports:
       - 8080:8080
     extends:
       file: common-config.yml
-      service: microservice-config-server-config
+      service: microservice-eureka-server-config
     environment:
       SPRING_APPLICATION_NAME: accounts-service
-      SPRING_DATASOURCE_URL: jdbc:mysql://accounts-db:3306/accounts-db
-    depends_on:
-      accounts-db:
-        condition: service_healthy
 
   loans-service:
-    image: asocarras/loans-service:s6
+    image: asocarras/loans-service:s8
     container_name: loans-service-container
     ports:
       - 8090:8090
     extends:
       file: common-config.yml
-      service: microservice-config-server-config
+      service: microservice-eureka-server-config
     environment:
       SPRING_APPLICATION_NAME: loans-service
-      SPRING_DATASOURCE_URL: jdbc:mysql://loans-db:3307/loans-db
-    depends_on:
-      loans-db:
-        condition: service_healthy
 
   cards-service:
-    image: asocarras/cards-service:s6
+    image: asocarras/cards-service:s8
     container_name: cards-service-container
     ports:
       - 9000:9000
     extends:
       file: common-config.yml
-      service: microservice-config-server-config
+      service: microservice-eureka-server-config
     environment:
       SPRING_APPLICATION_NAME: cards-service
-      SPRING_DATASOURCE_URL: jdbc:mysql://cards-db:3308/cards-db
-    depends_on:
-      cards-db:
-        condition: service_healthy
 
 networks:
   eazybank:
