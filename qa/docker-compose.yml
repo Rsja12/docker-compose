@@ -18,7 +18,7 @@ services:
       service: network-deploy-service
 
   config-server:
-    image: asocarras/config-server:s6
+    image: asocarras/config-server:s8
     container_name: config-server-container
     ports:
       - 8071:8071
@@ -36,7 +36,7 @@ services:
       service: microservice-base-config
 
   accounts-service:
-    image: asocarras/accounts-service:s6
+    image: asocarras/accounts-service:s8
     container_name: accounts-service-container
     ports:
       - 8080:8080
@@ -47,7 +47,7 @@ services:
       SPRING_APPLICATION_NAME: accounts-service
 
   loans-service:
-    image: asocarras/loans-service:s6
+    image: asocarras/loans-service:s8
     container_name: loans-service-container
     ports:
       - 8090:8090
@@ -58,7 +58,7 @@ services:
       SPRING_APPLICATION_NAME: loans-service
 
   cards-service:
-    image: asocarras/cards-service:s6
+    image: asocarras/cards-service:s8
     container_name: cards-service-container
     ports:
       - 9000:9000
