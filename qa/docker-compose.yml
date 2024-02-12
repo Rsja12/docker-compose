@@ -1,30 +1,10 @@
 services:
 
-  rabbitmq:
-    image: rabbitmq:3.12-management
-    container_name: rabbitmq-container
-    hostname: rabbitmq-host
-    ports:
-      - 5672:5672
-      - 15672:15672
-    healthcheck:
-      test: rabbitmq-diagnostics check_port_connectivity
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 5s
-    extends:
-      file: common-config.yml
-      service: network-deploy-service
-
   config-server:
     image: asocarras/config-server:s8
     container_name: config-server-container
     ports:
       - 8071:8071
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
     healthcheck:
       test: curl --fail --silent localhost:8071/actuator/health/readiness | grep UP || exit 1
       interval: 10s
@@ -35,6 +15,23 @@ services:
       file: common-config.yml
       service: microservice-base-config
 
+  eureka-server:
+    image: asocarras/eureka-server:s8
+    container_name: eureka-server-container
+    ports:
+      - 8070:8070
+    healthcheck:
+      test: curl --fail --silent localhost:8070/actuator/health/readiness | grep UP || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    extends:
+      file: common-config.yml
+      service: microservice-config-server-config
+    environment:
+      SPRING_APPLICATION_NAME: eureka-server
+
   accounts-service:
     image: asocarras/accounts-service:s8
     container_name: accounts-service-container
@@ -42,7 +39,7 @@ services:
       - 8080:8080
     extends:
       file: common-config.yml
-      service: microservice-config-server-config
+      service: microservice-eureka-server-config
     environment:
       SPRING_APPLICATION_NAME: accounts-service
 
@@ -53,7 +50,7 @@ services:
       - 8090:8090
     extends:
       file: common-config.yml
-      service: microservice-config-server-config
+      service: microservice-eureka-server-config
     environment:
       SPRING_APPLICATION_NAME: loans-service
 
@@ -64,7 +61,7 @@ services:
       - 9000:9000
     extends:
       file: common-config.yml
-      service: microservice-config-server-config
+      service: microservice-eureka-server-config
     environment:
       SPRING_APPLICATION_NAME: cards-service
 
