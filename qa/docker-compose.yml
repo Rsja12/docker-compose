@@ -1,7 +1,7 @@
 services:
 
   config-server:
-    image: asocarras/config-server:s8
+    image: asocarras/config-server:s9
     container_name: config-server-container
     ports:
       - 8071:8071
@@ -16,7 +16,7 @@ services:
       service: microservice-base-config
 
   eureka-server:
-    image: asocarras/eureka-server:s8
+    image: asocarras/eureka-server:s9
     container_name: eureka-server-container
     ports:
       - 8070:8070
@@ -33,10 +33,16 @@ services:
       SPRING_APPLICATION_NAME: eureka-server
 
   accounts-service:
-    image: asocarras/accounts-service:s8
+    image: asocarras/accounts-service:s9
     container_name: accounts-service-container
     ports:
       - 8080:8080
+    healthcheck:
+      test: curl --fail --silent localhost:8080/actuator/health/readiness | grep UP || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
     extends:
       file: common-config.yml
       service: microservice-eureka-server-config
@@ -44,10 +50,16 @@ services:
       SPRING_APPLICATION_NAME: accounts-service
 
   loans-service:
-    image: asocarras/loans-service:s8
+    image: asocarras/loans-service:s9
     container_name: loans-service-container
     ports:
       - 8090:8090
+    healthcheck:
+      test: curl --fail --silent localhost:8090/actuator/health/readiness | grep UP || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
     extends:
       file: common-config.yml
       service: microservice-eureka-server-config
@@ -55,15 +67,39 @@ services:
       SPRING_APPLICATION_NAME: loans-service
 
   cards-service:
-    image: asocarras/cards-service:s8
+    image: asocarras/cards-service:s9
     container_name: cards-service-container
     ports:
       - 9000:9000
+    healthcheck:
+      test: curl --fail --silent localhost:9000/actuator/health/readiness | grep UP || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
     extends:
       file: common-config.yml
       service: microservice-eureka-server-config
     environment:
       SPRING_APPLICATION_NAME: cards-service
+
+  gateway-server:
+    image: asocarras/gateway-server:s9
+    container_name: gateway-server-container
+    ports:
+      - 8072:8072
+    depends_on:
+      accounts-service:
+        condition: service_healthy
+      loans-service:
+        condition: service_healthy
+      cards-service:
+        condition: service_healthy
+    extends:
+      file: common-config.yml
+      service: microservice-eureka-server-config
+    environment:
+      SPRING_APPLICATION_NAME: gateway-server
 
 networks:
   eazybank:
