@@ -1,7 +1,20 @@
 services:
 
+  redis:
+    image: redis
+    container_name: redis_container
+    ports:
+      - 6379:6379
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      timeout: 10s
+      retries: 10
+    extends:
+      file: common-config.yml 
+      service: network-deploy-service
+
   config-server:
-    image: asocarras/config-server:s9
+    image: asocarras/config-server:s10
     container_name: config-server-container
     ports:
       - 8071:8071
@@ -16,7 +29,7 @@ services:
       service: microservice-base-config
 
   eureka-server:
-    image: asocarras/eureka-server:s9
+    image: asocarras/eureka-server:s10
     container_name: eureka-server-container
     ports:
       - 8070:8070
@@ -33,7 +46,7 @@ services:
       SPRING_APPLICATION_NAME: eureka-server
 
   accounts-service:
-    image: asocarras/accounts-service:s9
+    image: asocarras/accounts-service:s10
     container_name: accounts-service-container
     ports:
       - 8080:8080
@@ -50,7 +63,7 @@ services:
       SPRING_APPLICATION_NAME: accounts-service
 
   loans-service:
-    image: asocarras/loans-service:s9
+    image: asocarras/loans-service:s10
     container_name: loans-service-container
     ports:
       - 8090:8090
@@ -67,7 +80,7 @@ services:
       SPRING_APPLICATION_NAME: loans-service
 
   cards-service:
-    image: asocarras/cards-service:s9
+    image: asocarras/cards-service:s10
     container_name: cards-service-container
     ports:
       - 9000:9000
@@ -84,7 +97,7 @@ services:
       SPRING_APPLICATION_NAME: cards-service
       
   gateway-server:
-    image: asocarras/gateway-server:s9
+    image: asocarras/gateway-server:s10
     container_name: gateway-server-container
     ports:
       - 8072:8072
@@ -95,11 +108,16 @@ services:
         condition: service_healthy
       cards-service:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     extends:
       file: common-config.yml
       service: microservice-eureka-server-config
     environment:
       SPRING_APPLICATION_NAME: gateway-server
+      SPRING_DATA_REDIS_CONNECT-TIMEOUT: 2s
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_DATA_REDIS_TIMEOUT: 1s
 
 networks:
   eazybank:
