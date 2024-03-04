@@ -287,8 +287,7 @@ services:
       service: microservice-eureka-server-config
     environment:
       SPRING_APPLICATION_NAME: gateway-server
-observability/promtail/promtail-local-config:
-  yml:
+
 networks:
   eazybank:
     driver: bridge
