@@ -201,7 +201,7 @@ services:
       service: network-deploy-service
 
   config-server:
-    image: asocarras/config-server:s11
+    image: asocarras/config-server:s12
     container_name: config-server-container
     ports:
       - 8071:8071
@@ -218,7 +218,7 @@ services:
       OTEL_SERVICE_NAME: config-server
 
   eureka-server:
-    image: asocarras/eureka-server:s11
+    image: asocarras/eureka-server:s12
     container_name: eureka-server-container
     ports:
       - 8070:8070
@@ -236,7 +236,7 @@ services:
       OTEL_SERVICE_NAME: eureka-server
 
   accounts-service:
-    image: asocarras/accounts-service:s11
+    image: asocarras/accounts-service:s12
     container_name: accounts-service-container
     ports:
       - 8080:8080
@@ -254,7 +254,7 @@ services:
       OTEL_SERVICE_NAME: accounts-service
 
   loans-service:
-    image: asocarras/loans-service:s11
+    image: asocarras/loans-service:s12
     container_name: loans-service-container
     ports:
       - 8090:8090
@@ -272,7 +272,7 @@ services:
       OTEL_SERVICE_NAME: loans-service
 
   cards-service:
-    image: asocarras/cards-service:s11
+    image: asocarras/cards-service:s12
     container_name: cards-service-container
     ports:
       - 9000:9000
@@ -290,7 +290,7 @@ services:
       OTEL_SERVICE_NAME: cards-service
 
   gateway-server:
-    image: asocarras/gateway-server:s11
+    image: asocarras/gateway-server:s12
     container_name: gateway-server-container
     ports:
       - 8072:8072
