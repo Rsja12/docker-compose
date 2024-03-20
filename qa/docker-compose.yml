@@ -1,6 +1,19 @@
 #file: noinspection YAMLIncompatibleTypes
 services:
 
+  keycloak:
+    image: quay.io/keycloak/keycloak:22.0.1
+    container_name: keycloak-container
+    ports:
+      - "7080:8080"
+    environment:
+      KEYCLOAK_ADMIN: "admin"
+      KEYCLOAK_ADMIN_PASSWORD: "admin"
+    command: "start-dev"
+    extends:
+      file: common-config.yml
+      service: network-deploy-service
+
   read:
     image: grafana/loki:2.9.2
     command: "-config.file=/etc/loki/config.yml -target=read"
@@ -201,7 +214,7 @@ services:
       service: network-deploy-service
 
   config-server:
-    image: asocarras/config-server:s11
+    image: asocarras/config-server:s12
     container_name: config-server-container
     ports:
       - 8071:8071
@@ -218,7 +231,7 @@ services:
       OTEL_SERVICE_NAME: config-server
 
   eureka-server:
-    image: asocarras/eureka-server:s11
+    image: asocarras/eureka-server:s12
     container_name: eureka-server-container
     ports:
       - 8070:8070
@@ -236,10 +249,8 @@ services:
       OTEL_SERVICE_NAME: eureka-server
 
   accounts-service:
-    image: asocarras/accounts-service:s11
+    image: asocarras/accounts-service:s12
     container_name: accounts-service-container
-    ports:
-      - 8080:8080
     healthcheck:
       test: curl --fail --silent localhost:8080/actuator/health/readiness | grep UP || exit 1
       interval: 10s
@@ -254,10 +265,8 @@ services:
       OTEL_SERVICE_NAME: accounts-service
 
   loans-service:
-    image: asocarras/loans-service:s11
+    image: asocarras/loans-service:s12
     container_name: loans-service-container
-    ports:
-      - 8090:8090
     healthcheck:
       test: curl --fail --silent localhost:8090/actuator/health/readiness | grep UP || exit 1
       interval: 10s
@@ -272,10 +281,8 @@ services:
       OTEL_SERVICE_NAME: loans-service
 
   cards-service:
-    image: asocarras/cards-service:s11
+    image: asocarras/cards-service:s12
     container_name: cards-service-container
-    ports:
-      - 9000:9000
     healthcheck:
       test: curl --fail --silent localhost:9000/actuator/health/readiness | grep UP || exit 1
       interval: 10s
@@ -290,7 +297,7 @@ services:
       OTEL_SERVICE_NAME: cards-service
 
   gateway-server:
-    image: asocarras/gateway-server:s11
+    image: asocarras/gateway-server:s12
     container_name: gateway-server-container
     ports:
       - 8072:8072
@@ -307,6 +314,7 @@ services:
     environment:
       SPRING_APPLICATION_NAME: gateway-server
       OTEL_SERVICE_NAME: gateway-server
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK-SET-URI: "http://keycloak:8080/realms/master/protocol/openid-connect/certs"
 
 networks:
   eazybank:
