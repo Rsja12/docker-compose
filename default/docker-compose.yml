@@ -1,6 +1,22 @@
 #file: noinspection YAMLIncompatibleTypes
 services:
 
+  rabbit:
+    image: rabbitmq:3.13-management
+    container_name: rabbitmq-container
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: rabbitmq-diagnostics check_port_connectivity
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    extends:
+      file: common-config.yml
+      service: network-deploy-service
+
   keycloak:
     image: quay.io/keycloak/keycloak:22.0.1
     container_name: keycloak-container
@@ -214,7 +230,7 @@ services:
       service: network-deploy-service
 
   config-server:
-    image: asocarras/config-server:s12
+    image: asocarras/config-server:s13
     container_name: config-server-container
     ports:
       - 8071:8071
@@ -231,7 +247,7 @@ services:
       OTEL_SERVICE_NAME: config-server
 
   eureka-server:
-    image: asocarras/eureka-server:s12
+    image: asocarras/eureka-server:s13
     container_name: eureka-server-container
     ports:
       - 8070:8070
@@ -249,7 +265,7 @@ services:
       OTEL_SERVICE_NAME: eureka-server
 
   accounts-service:
-    image: asocarras/accounts-service:s12
+    image: asocarras/accounts-service:s13
     container_name: accounts-service-container
     healthcheck:
       test: curl --fail --silent localhost:8080/actuator/health/readiness | grep UP || exit 1
@@ -257,15 +273,19 @@ services:
       timeout: 5s
       retries: 10
       start_period: 10s
+    depends_on:
+      rabbit:
+        condition: service_healthy
     extends:
       file: common-config.yml
       service: microservice-eureka-server-config
     environment:
       SPRING_APPLICATION_NAME: accounts-service
       OTEL_SERVICE_NAME: accounts-service
+      SPRING_RABBITMQ_HOST: "rabbit"
 
   loans-service:
-    image: asocarras/loans-service:s12
+    image: asocarras/loans-service:s13
     container_name: loans-service-container
     healthcheck:
       test: curl --fail --silent localhost:8090/actuator/health/readiness | grep UP || exit 1
@@ -281,7 +301,7 @@ services:
       OTEL_SERVICE_NAME: loans-service
 
   cards-service:
-    image: asocarras/cards-service:s12
+    image: asocarras/cards-service:s13
     container_name: cards-service-container
     healthcheck:
       test: curl --fail --silent localhost:9000/actuator/health/readiness | grep UP || exit 1
@@ -297,7 +317,7 @@ services:
       OTEL_SERVICE_NAME: cards-service
 
   gateway-server:
-    image: asocarras/gateway-server:s12
+    image: asocarras/gateway-server:s13
     container_name: gateway-server-container
     ports:
       - 8072:8072
@@ -315,6 +335,18 @@ services:
       SPRING_APPLICATION_NAME: gateway-server
       OTEL_SERVICE_NAME: gateway-server
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK-SET-URI: "http://keycloak:8080/realms/master/protocol/openid-connect/certs"
+
+  message-service:
+    image: asocarras/message-service:s13
+    container_name: message-service-container
+    depends_on:
+      rabbit:
+        condition: service_healthy
+    environment:
+      SPRING_RABBITMQ_HOST: "rabbit"
+    extends:
+      file: common-config.yml
+      service: network-deploy-service
 
 networks:
   eazybank:
